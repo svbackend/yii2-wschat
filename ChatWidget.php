@@ -15,7 +15,7 @@ class ChatWidget extends Widget
     /**
      * @var boolean set to true if widget will be run for auth users
      */
-    public $auth = false;
+    public $auth = true;
     public $user_id = null;
     public $view = 'index';
     /** @var integer $port web socket port */

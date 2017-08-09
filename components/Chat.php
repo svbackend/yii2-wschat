@@ -1,7 +1,6 @@
 <?php
 namespace svbackend\wschat\components;
 
-use app\models\User as ARUser;
 use Yii;
 use yii\helpers\Json;
 use Ratchet\ConnectionInterface;
@@ -17,6 +16,7 @@ class Chat implements MessageComponentInterface
     private $clients = [];
     /** @var \svbackend\wschat\components\ChatManager */
     private $cm = null;
+
     /**
      * @var array list of available requests
      */
@@ -110,7 +110,9 @@ class Chat implements MessageComponentInterface
             $userToken = $data['user']['token'];
         } else $userToken = '';
 
-        if (null === $user = ARUser::findIdentityByAccessToken($userToken)) {
+        $userModel = $this->cm->userClassName;
+
+        if (null === $user = $userModel::findIdentityByAccessToken($userToken)) {
             echo 'errCode 1' . PHP_EOL;
             #$this->closeRequest($rid);
             $conn = $this->clients[$rid];

@@ -19,6 +19,7 @@ class User
     public $username;
     public $avatar_16;
     public $avatar_32;
+
     private $rid;
     /** @var \svbackend\wschat\components\ChatRoom $chat */
     private $chat;
@@ -62,11 +63,18 @@ class User
                     throw new InvalidParamException(Yii::t('app', 'User entity not found.'));
                 }
                 $attrs = $model->attributes;
+                /**
+                 * You can define custom avatars / username there
+                 */
+                #$attrs['username'] = $model->getUsername();
+                #$attrs['avatar_16'] = $model->getAvatar();
+                #$attrs['avatar_32'] = $model->getAvatar();
             } else {
                 $attrs = $props;
             }
             $cache->set($this->id, $attrs);
         }
+
         Yii::configure($this, $attrs);
     }
 
