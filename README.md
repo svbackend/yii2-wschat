@@ -72,8 +72,8 @@ extension to store messages history and you need just specify connection in `con
         ```php
         namespace app\commands;
 
-        use jones\wschat\components\Chat;
-        use jones\wschat\components\ChatManager;
+        use svbackend\wschat\components\Chat;
+        use svbackend\wschat\components\ChatManager;
         use Ratchet\Server\IoServer;
         use Ratchet\Http\HttpServer;
         use Ratchet\WebSocket\WsServer;
