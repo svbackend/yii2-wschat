@@ -1,6 +1,6 @@
 {
-    "name": "joni-jones/yii2-wschat",
-    "description": "Online chat based on web sockets and ratchet php",
+    "name": "svbackend/yii2-wschat",
+    "description": "Private chat based on web sockets and ratchet php (Yii2)",
     "type": "yii2-extension",
     "keywords": ["yii2","extension","backbone","ratchet","websocket","chat"],
     "license": "MIT",
@@ -8,11 +8,13 @@
     "authors": [
         {
             "name": "Ievgen Sentiabov"
+        },
+        {
+            "name": "Valentin Saik"
         }
     ],
     "require": {
         "yiisoft/yii2": "*",
-        "yiisoft/yii2-mongodb": "2.1.*",
         "yiisoft/yii2-bootstrap": "*",
         "cboden/ratchet": "0.3.*",
         "bower-asset/jquery": "2.*",
@@ -30,7 +32,7 @@
     },
     "autoload": {
         "psr-4": {
-            "jones\\wschat\\": ""
+            "svbackend\\wschat\\": ""
         }
     }
 }
