@@ -1,15 +1,7 @@
-Web Socket Chat
+Yii2 Web Socket Private Chat
 ===============
 
-Online chat based on web sockets and ratchet php
-
-[![Latest Stable Version](https://poser.pugx.org/joni-jones/yii2-wschat/v/stable)](https://packagist.org/packages/joni-jones/yii2-wschat)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/joni-jones/yii2-wschat/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/joni-jones/yii2-wschat/?branch=master)
-[![Total Downloads](https://poser.pugx.org/joni-jones/yii2-wschat/downloads)](https://packagist.org/packages/joni-jones/yii2-wschat)
-[![License](https://poser.pugx.org/joni-jones/yii2-wschat/license)](https://packagist.org/packages/joni-jones/yii2-wschat)
-[![Join the chat at https://gitter.im/joni-jones/yii2-wschat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/joni-jones/yii2-wschat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-![Demo] (doc/demo.gif)
+Online chat based on web sockets and ratchet php. Forked: github.com/joni-jones/yii2-wschat (public chat, with rooms)
 
 Installation
 ------------
@@ -19,13 +11,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist joni-jones/yii2-wschat
+php composer.phar require --prefer-dist svbackend/yii2-wschat
 ```
 
 or add
 
 ```
-"joni-jones/yii2-wschat": "*"
+"svbackend/yii2-wschat": "*"
 ```
 
 to the require section of your `composer.json` file.
@@ -35,6 +27,21 @@ Usage
 
 1. The chat extension can use any database storage supported by yii.
 
+    If you would like to use **mysql/mariadb** server keep your current DB configuration and simply import table:
+    ```sql
+        CREATE TABLE history(
+            id UNSIGNED INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            chat_id VARCHAR(60),
+            chat_title VARCHAR(60),
+            user_id VARCHAR(60),
+            username VARCHAR(60),
+            avatar_16 VARCHAR(90),
+            avatar_32 VARCHAR(90),
+            timestamp UNSIGNED INTEGER NOT NULL DEFAULT 0,
+            message TEXT
+        );
+    ```
+
     If `mongodb` extension specified the chat will be try to use it as message history storage, otherwise extension
 will be use specified in application config db component.
 
@@ -43,17 +50,14 @@ Install [MongoDB](http://docs.mongodb.org/) and [yii2-mongodb](http://www.yiifra
 extension to store messages history and you need just specify connection in `console` config:
 
     ```php
-    'components' => [
-        'mongodb' => [
-            'class' => '\yii\mongodb\Connection',
-            'dsn' => 'mongodb://username:password@localhost:27017/dbname'
+        'components' => [
+            'mongodb' => [
+                'class' => '\yii\mongodb\Connection',
+                'dsn' => 'mongodb://username:password@localhost:27017/dbname'
+            ]
         ]
-    ]
     ```
     In created mongodb database you need to create collection named as `history`;
-
-    IMPORTANT: if you use db component - you need to create table `history` in your database.
-The simple examples postgresql and mysql you can see in `tests/codeception` directory.
 
 
 2. To start chat server need to create console command and setup it as demon:
@@ -78,21 +82,34 @@ The simple examples postgresql and mysql you can see in `tests/codeception` dire
         {
             public function actionRun()
             {
-                $server = IoServer::factory(new HttpServer(new WsServer(new Chat(new ChatManager()))), 8080);
+                $manager = Yii::configure(new ChatManager(), [
+                    'userClassName' => Users::class, // Your User Active Record model class
+                ]);
+                $server = IoServer::factory(new HttpServer(new WsServer(new Chat($manager))), 8080);
+
+                // If there no connections for a long time - db connection will be closed and new users will get the error
+                // so u need to keep connection alive like that
+                // Что бы база данных не разрывала соединения изза неактивности
+                $server->loop->addPeriodicTimer(60, function () use ($server) {
+                    try{
+                        Yii::$app->db->createCommand("DO 1")->execute();
+                    }catch (Exception $e){
+                        Yii::$app->db->close();
+                        Yii::$app->db->open();
+                    }
+                    // Also u can send messages to your cliens right there
+                    /*
+                    foreach ($server->app->clients as $client) {
+                        $client->send("hello client");
+                    }*/
+                });
+
                 $server->run();
                 echo 'Server was started successfully. Setup logging to get more details.'.PHP_EOL;
             }
         }
         ```
-        
-    If you want to use chat for auth users, you must to specify `userClassName` property for `ChatManager` instance.
-    For example:
-    
-    ```php
-        $manager = Yii::configure(new ChatManager(), [
-            'userClassName' => '\yii\db\ActiveRecord' //allow to get users from MySQL or PostgreSQL
-        ]);
-    ```
+       
         
     - Now, you can run chat server with `yii` console command:
     
@@ -102,17 +119,13 @@ The simple examples postgresql and mysql you can see in `tests/codeception` dire
         
 3. To add chat on page just call:
 
-    ```php
-    <?php echo ChatWidget::widget();?>
-    ```
-    
-    or if you want to use chat for auth users just add config as parameter:
+
         
     ```php  
-    <?php echo ChatWidget::widget([
-        'auth' => true,
-        'user_id' => '' // setup id of current logged user
-    ]);?>
+        <?= ChatWidget::widget([
+            'auth' => true,
+            'user_id' => Yii::$app->user->id // setup id of current logged user
+        ]) ?>
     ```
     
         List of available options:
@@ -156,9 +169,6 @@ If you don't see any messages in console log, check `flushInterval` and `exportI
     ],
 ],
 ```
-
-If you use `https` protocol chat will try to connect to `wss` instead `ws`. But Ratchet PHP [does not support](https://github.com/reactphp/react/issues/2) work via SSL, so
-you need to use some proxy like [stunnel](https://www.stunnel.org/index.html).
 
 License
 ----
