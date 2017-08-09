@@ -29,17 +29,23 @@ Usage
 
     If you would like to use **mysql/mariadb** server keep your current DB configuration and simply import table:
     ```sql
-        CREATE TABLE history(
-            id UNSIGNED INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            chat_id VARCHAR(60),
-            chat_title VARCHAR(60),
-            user_id VARCHAR(60),
-            username VARCHAR(60),
-            avatar_16 VARCHAR(90),
-            avatar_32 VARCHAR(90),
-            timestamp UNSIGNED INTEGER NOT NULL DEFAULT 0,
-            message TEXT
-        );
+        CREATE TABLE IF NOT EXISTS `history` (
+          `id` int(11) NOT NULL,
+          `chat_id` varchar(60) COLLATE utf8_unicode_ci DEFAULT NULL,
+          `chat_title` varchar(60) COLLATE utf8_unicode_ci DEFAULT NULL,
+          `user_id` varchar(60) COLLATE utf8_unicode_ci DEFAULT NULL,
+          `username` varchar(60) COLLATE utf8_unicode_ci DEFAULT NULL,
+          `avatar_16` varchar(90) COLLATE utf8_unicode_ci DEFAULT NULL,
+          `avatar_32` varchar(90) COLLATE utf8_unicode_ci DEFAULT NULL,
+          `timestamp` int(11) NOT NULL DEFAULT '0',
+          `message` text COLLATE utf8_unicode_ci
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+        
+        ALTER TABLE `history`
+          ADD PRIMARY KEY (`id`);
+        
+        ALTER TABLE `history`
+          MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
     ```
 
     If `mongodb` extension specified the chat will be try to use it as message history storage, otherwise extension
